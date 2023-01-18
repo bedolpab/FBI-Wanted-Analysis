@@ -23,6 +23,7 @@ class FFiles:
 
 # Fugitive object
 # Attr count: 53
+# ATTR MAY RETURN NONE, IMPLEMENT NONE CHECK ? lambda?
 class Fugitive:
     def __init__(self, df):
         self.df = df
@@ -31,30 +32,30 @@ class Fugitive:
         self.ncic = self.df.ncic
         self.scars_and_marks = self.get_scars_and_marks()
         self.images = FImages(df=self.df.images[0])
-        self.person_classification = None
-        self.weight = None
-        self.height_min = None
-        self.race = None
-        self.age_range = None
-        self.aliases = None
-        self.complexion = None
-        self.uid = None
-        self.eyes_raw = None
-        self.languages = None
-        self.locations = None
-        self.status = None
-        self.reward_max = None
-        self.eyes = None
-        self.race_raw = None
-        self.modified = None
-        self.url = None
-        self.publication = None
-        self.additional_information = None
-        self.reward_min = None
-        self.weight_max = None
-        self.build = None
-        self.nationality = None
-        self.files = None
+        self.person_classification = self.df.person_classification[0]
+        # self.weight = None (disregard, make algo to fix)
+        self.height_min = self.df.height_min[0] # stores np.float64
+        self.race = self.df.race[0] # str
+        self.age_range = None # Discard (algo to fix)
+        self.aliases = self.get_fugitive_aliases()
+        self.complexion = self.df.complexion[0]
+        self.uid = self.df.uid[0]
+        self.eyes_raw = self.df.eyes_raw[0]
+        self.languages = self.df.languages[0]
+        self.locations = None # Literally, no data for all 966
+        self.status = None if self.df.status[9] == "na" else None
+        self.reward_max = self.df.reward_max[0] # numpy.int64
+        self.eyes = self.df.eyes[0] # str
+        self.race_raw = self.df.race_raw[0] # str
+        self.modified = self.df.modified[0] # str
+        self.url = self.df.url[0] # str
+        self.publication = self.df.publication[0] # str
+        self.additional_information = None # useless, keep attr for change
+        self.reward_min = self.df.reward_min[0] # numpy.int64
+        self.weight_max = self.df.weight_max[0]
+        self.build = None #Disregard build
+        self.nationality = self.df.nationality[0] # str
+        self.files = None # no need for files, its data present here
         self.subject = None
         self.suspect = None
         self.weight_min = None
@@ -97,3 +98,17 @@ class Fugitive:
             return None
         else:
             return re.sub(r'[\n\r]', '', self.df.scars_and_marks[0])
+
+    # Should return list of aliases, not single (error)
+    def get_fugitive_aliases(self):
+        if self.df.aliases[0] is None:
+            return None
+        else:
+            for alias in self.df.aliases[0]:
+                if '"' in alias or '“' in alias:
+                    match = re.search(r'"(.*?)"|“(.*?)”|“(.*?)"|"(.*?)“', alias).group(0)
+                    match = re.sub(r'[\"|\“]', "", match)
+                    return match
+                else:
+                    return alias
+
