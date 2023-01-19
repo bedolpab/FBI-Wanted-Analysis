@@ -1,3 +1,4 @@
+import numpy
 import pandas as pd
 import re
 
@@ -52,20 +53,20 @@ class Fugitive:
         self.publication = self.df.publication[0] # str
         self.additional_information = None # useless, keep attr for change
         self.reward_min = self.df.reward_min[0] # numpy.int64
-        self.weight_max = self.df.weight_max[0]
+        self.weight_max = self.df.weight_max[0] # numpy.float64
         self.build = None #Disregard build
         self.nationality = self.df.nationality[0] # str
         self.files = None # no need for files, its data present here
-        self.subject = None
-        self.suspect = None
-        self.weight_min = None
-        self.occupations = None
-        self.possible_states = None
-        self.warning_message = None
-        self.height_max = None
-        self.title = None
-        self.age_min = None
-        self.reward_text = None
+        self.subject = self.df.subjects[0]
+        self.suspect = None # dead column
+        self.weight_min = self.df.weight_max[0] # numpy.float64
+        self.occupations = self.df.occupations[0] # list
+        self.possible_states = self.get_possible_states() # list of states ("IL", "PA")
+        self.warning_message = self.df.warning_message[0].lower() # str
+        self.height_max = self.df.height_max[0] # numpy.float64
+        self.title = self.get_alpha() # str
+        self.age_min = self.df.age_min # numpy.float64
+        self.reward_text = self.get_reward() # numpy.int32 (save space)
         self.description = None
         self.caution = None
         self.age_max = None
@@ -112,3 +113,24 @@ class Fugitive:
                 else:
                     return alias
 
+    def get_possible_states(self):
+        states = []
+        for state in self.df.possible_states[6]:
+            states.append(state.replace("US-", ""))
+
+        return states
+
+    def get_alpha(self):
+        return (''.join([c for c in self.df.title[0] if c.isalpha()])).lower()
+
+    def get_reward(self):
+        reward = self.df.reward_text[0].split(" ")
+        for i, s in enumerate(reward):
+            value = re.findall(r'(?:[\£\$\€][,\d]+.?\d*)', s)
+            output = re.sub(r'[$,]', '', "".join(value))
+            if output.__len__() < 2:
+                if reward[i + 1] == "million":
+                    return numpy.int32(int(output) * 1000000)
+
+            else:
+                return numpy.int32(output) # no fug is worth $2B + atm
