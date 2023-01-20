@@ -67,20 +67,20 @@ class Fugitive:
         self.title = self.get_alpha() # str
         self.age_min = self.df.age_min # numpy.float64
         self.reward_text = self.get_reward() # numpy.int32 (save space)
-        self.description = None
-        self.caution = None
-        self.age_max = None
-        self.path = None
-        self.legat_names = None # Legal? FBI api grammar mistake
-        self.possible_countries = None
-        self.sex = None
-        self.place_of_birth = None
-        self.dates_of_birth_used = None
-        self.hair_raw = None
-        self.hair = None
-        self.coordinates = None
-        self.field_offices = None
-        self.id = None
+        self.description = self.df.description[0] # str
+        self.caution = self.get_caution() # str
+        self.age_max = self.df.age_max # numpy.float64
+        self.path = self.df.path.split('/')[1]
+        self.legat_names = None # Legal? FBI api grammar mistake (also empty, disregard)
+        self.possible_countries = self.df.possible_countries[0] # list
+        self.sex = self.df.sex[0].lower() # lower case str
+        self.place_of_birth = self.df.place_of_birth[0] # str
+        self.dates_of_birth_used = self.df.dates_of_birth_used #str list
+        self.hair_raw = self.df.hair_raw[0]
+        self.hair = self.df.hair[0] # str
+        self.coordinates = None # empty - disregard
+        self.field_offices = self.df.field_offices[0] # list str
+        self.at_id = self.df.__getattr__("@id")[0]
 
     def get_details(self):
         if self.df.remarks[0] is None:
@@ -134,3 +134,9 @@ class Fugitive:
 
             else:
                 return numpy.int32(output) # no fug is worth $2B + atm
+
+    def get_caution(self):
+        if self.df.remarks[0] is None:
+            return None
+        else:
+            return re.sub(r'[\n\xa0]', '', BeautifulSoup.BeautifulSoup(self.df.caution[0]).get_text())
