@@ -1,14 +1,35 @@
 import requests
+import json
 import pandas as pd
-import bs4 as bs
+import numpy as np
+from bs4 import BeautifulSoup
+import re as re
 from fugitiveData import Fugitive
+import pprint
 
-response = requests.get('https://api.fbi.gov/wanted/v1/list', params={
-            'page': 1,
-            'pageSize': 1
-        }).json()['items']
 
-# Batch processing for 1
-# to be >1
-fugitive = Fugitive(pd.DataFrame(response))
-attrs = vars(fugitive)
+i = 1
+hasContent = True
+empty = []
+while hasContent:
+    response = requests.get('https://api.fbi.gov/wanted/v1/list', params={
+        'page': i
+    }).json()['items']
+
+    if pd.DataFrame(response).empty:
+        hasContent = False
+        continue
+    else:
+        for item in response:
+            empty.append(item)
+        i += 1
+
+data = pd.DataFrame(empty)
+fugitives = []
+for i in range(0, data.shape[0]):
+    fugitives.append(Fugitive(data.iloc[i, :]))
+
+df = pd.DataFrame([x.to_dict() for x in fugitives])
+print(df)
+input("confirm process ... (?)")
+df.to_csv("./cleaned-list.csv")
