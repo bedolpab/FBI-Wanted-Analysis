@@ -1,6 +1,11 @@
 import requests
 import json
 import pandas as pd
+import numpy as np
+from bs4 import BeautifulSoup
+import re as re
+from fugitiveData import Fugitive
+import pprint
 
 # Fetches all fugitives
 # Testing done on batch size: 1 to apply to all
@@ -22,5 +27,9 @@ if __name__ == '__main__':
             i += 1
 
     data = pd.DataFrame(empty)
-    data.to_csv("./wanted-list.csv")
+    fugitives = []
+    for i in range(0, data.shape[0]):
+        fugitives.append(Fugitive(data.iloc[i, :]))
 
+    df = pd.DataFrame([x.to_dict() for x in fugitives])
+    print(df)
