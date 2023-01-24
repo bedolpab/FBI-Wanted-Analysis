@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import re as re
 from fugitiveData import Fugitive
 import pprint
+import networkx as nx
 
 # Fetches all fugitives
 # Testing done on batch size: 1 to apply to all
